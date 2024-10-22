@@ -10,8 +10,8 @@ url = "http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t
 def get_btmc_price():
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Raises HTTPError for bad responses
-        response = response.json()  # Parse the JSON response
+        response.raise_for_status()
+        response = response.json()
         print("GOLDVIP", response)
         return response
     except requests.exceptions.RequestException as e:
@@ -19,7 +19,7 @@ def get_btmc_price():
         return None
 
 
-# @app.route('/btmc_price', methods=['GET'])  # Define a route for the API
+# @app.route('/btmc_price', methods=['GET'])
 def btmc_price():
       data = get_btmc_price()
       return jsonify(data)
