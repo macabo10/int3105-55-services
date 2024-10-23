@@ -1,6 +1,7 @@
 import requests;
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
+import os
 
 API = "https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10"
 
@@ -30,7 +31,11 @@ def fetch_data_from_api():
 
         try:
             root = ET.fromstring(data)
-            with open("exchange-rate-service/exchange_rate.xml", "wb") as f:
+            
+            current_dir = os.path.dirname(__file__)
+            data_file_path = os.path.join(current_dir, "exchange_rate.xml")
+
+            with open(data_file_path, "wb") as f:
                 f.write(ET.tostring(root))
             return root
         except ET.ParseError as e:

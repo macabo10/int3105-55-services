@@ -1,24 +1,24 @@
 <ExrateList>
-  <DateTime>10/22/2024 5:34:05 PM</DateTime>
-  <Exrate CurrencyCode="AUD" CurrencyName="AUSTRALIAN DOLLAR   " Buy="16,532.77" Transfer="16,699.77" Sell="17,235.54" />
-  <Exrate CurrencyCode="CAD" CurrencyName="CANADIAN DOLLAR     " Buy="17,888.59" Transfer="18,069.29" Sell="18,649.00" />
-  <Exrate CurrencyCode="CHF" CurrencyName="SWISS FRANC         " Buy="28,594.44" Transfer="28,883.28" Sell="29,809.93" />
-  <Exrate CurrencyCode="CNY" CurrencyName="YUAN RENMINBI       " Buy="3,471.63" Transfer="3,506.69" Sell="3,619.20" />
-  <Exrate CurrencyCode="DKK" CurrencyName="DANISH KRONE        " Buy="-" Transfer="3,614.66" Sell="3,753.09" />
-  <Exrate CurrencyCode="EUR" CurrencyName="EURO                " Buy="26,759.46" Transfer="27,029.75" Sell="28,226.76" />
-  <Exrate CurrencyCode="GBP" CurrencyName="POUND STERLING      " Buy="32,158.32" Transfer="32,483.15" Sell="33,525.30" />
-  <Exrate CurrencyCode="HKD" CurrencyName="HONGKONG DOLLAR     " Buy="3,180.47" Transfer="3,212.60" Sell="3,315.67" />
-  <Exrate CurrencyCode="INR" CurrencyName="INDIAN RUPEE        " Buy="-" Transfer="300.94" Sell="312.97" />
-  <Exrate CurrencyCode="JPY" CurrencyName="YEN                 " Buy="162.40" Transfer="164.04" Sell="171.84" />
-  <Exrate CurrencyCode="KRW" CurrencyName="KOREAN WON          " Buy="15.90" Transfer="17.66" Sell="19.17" />
-  <Exrate CurrencyCode="KWD" CurrencyName="KUWAITI DINAR       " Buy="-" Transfer="82,569.85" Sell="85,871.02" />
-  <Exrate CurrencyCode="MYR" CurrencyName="MALAYSIAN RINGGIT   " Buy="-" Transfer="5,812.65" Sell="5,939.43" />
-  <Exrate CurrencyCode="NOK" CurrencyName="NORWEGIAN KRONER    " Buy="-" Transfer="2,273.81" Sell="2,370.35" />
-  <Exrate CurrencyCode="RUB" CurrencyName="RUSSIAN RUBLE       " Buy="-" Transfer="250.57" Sell="277.39" />
-  <Exrate CurrencyCode="SAR" CurrencyName="SAUDI RIAL          " Buy="-" Transfer="6,737.16" Sell="7,006.52" />
-  <Exrate CurrencyCode="SEK" CurrencyName="SWEDISH KRONA       " Buy="-" Transfer="2,357.65" Sell="2,457.75" />
-  <Exrate CurrencyCode="SGD" CurrencyName="SINGAPORE DOLLAR    " Buy="18,798.46" Transfer="18,988.34" Sell="19,597.54" />
-  <Exrate CurrencyCode="THB" CurrencyName="THAILAND BAHT       " Buy="669.00" Transfer="743.34" Sell="771.80" />
-  <Exrate CurrencyCode="USD" CurrencyName="US DOLLAR           " Buy="25,062.00" Transfer="25,092.00" Sell="25,452.00" />
+  <DateTime>10/23/2024 1:26:29 PM</DateTime>
+  <Exrate CurrencyCode="AUD" CurrencyName="AUSTRALIAN DOLLAR   " Buy="16,533.18" Transfer="16,700.18" Sell="17,235.92" />
+  <Exrate CurrencyCode="CAD" CurrencyName="CANADIAN DOLLAR     " Buy="17,921.28" Transfer="18,102.31" Sell="18,683.02" />
+  <Exrate CurrencyCode="CHF" CurrencyName="SWISS FRANC         " Buy="28,588.03" Transfer="28,876.79" Sell="29,803.15" />
+  <Exrate CurrencyCode="CNY" CurrencyName="YUAN RENMINBI       " Buy="3,473.45" Transfer="3,508.54" Sell="3,621.09" />
+  <Exrate CurrencyCode="DKK" CurrencyName="DANISH KRONE        " Buy="-" Transfer="3,611.83" Sell="3,750.14" />
+  <Exrate CurrencyCode="EUR" CurrencyName="EURO                " Buy="26,735.45" Transfer="27,005.51" Sell="28,201.35" />
+  <Exrate CurrencyCode="GBP" CurrencyName="POUND STERLING      " Buy="32,135.05" Transfer="32,459.65" Sell="33,500.94" />
+  <Exrate CurrencyCode="HKD" CurrencyName="HONGKONG DOLLAR     " Buy="3,187.32" Transfer="3,219.51" Sell="3,322.79" />
+  <Exrate CurrencyCode="INR" CurrencyName="INDIAN RUPEE        " Buy="-" Transfer="301.45" Sell="313.50" />
+  <Exrate CurrencyCode="JPY" CurrencyName="YEN                 " Buy="161.78" Transfer="163.42" Sell="171.19" />
+  <Exrate CurrencyCode="KRW" CurrencyName="KOREAN WON          " Buy="15.89" Transfer="17.65" Sell="19.16" />
+  <Exrate CurrencyCode="KWD" CurrencyName="KUWAITI DINAR       " Buy="-" Transfer="82,786.75" Sell="86,096.32" />
+  <Exrate CurrencyCode="MYR" CurrencyName="MALAYSIAN RINGGIT   " Buy="-" Transfer="5,795.92" Sell="5,922.33" />
+  <Exrate CurrencyCode="NOK" CurrencyName="NORWEGIAN KRONER    " Buy="-" Transfer="2,279.11" Sell="2,375.87" />
+  <Exrate CurrencyCode="RUB" CurrencyName="RUSSIAN RUBLE       " Buy="-" Transfer="252.65" Sell="279.69" />
+  <Exrate CurrencyCode="SAR" CurrencyName="SAUDI RIAL          " Buy="-" Transfer="6,750.45" Sell="7,020.32" />
+  <Exrate CurrencyCode="SEK" CurrencyName="SWEDISH KRONA       " Buy="-" Transfer="2,360.78" Sell="2,461.01" />
+  <Exrate CurrencyCode="SGD" CurrencyName="SINGAPORE DOLLAR    " Buy="18,812.65" Transfer="19,002.68" Sell="19,612.28" />
+  <Exrate CurrencyCode="THB" CurrencyName="THAILAND BAHT       " Buy="668.33" Transfer="742.59" Sell="771.02" />
+  <Exrate CurrencyCode="USD" CurrencyName="US DOLLAR           " Buy="25,190.00" Transfer="25,220.00" Sell="25,462.00" />
   <Source>Joint Stock Commercial Bank for Foreign Trade of Vietnam - Vietcombank</Source>
 </ExrateList>
