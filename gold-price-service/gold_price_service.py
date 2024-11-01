@@ -1,6 +1,5 @@
 import requests
 from datetime import datetime, timedelta
-from flask import Flask, jsonify
 import xml.etree.ElementTree as ET
 
 # API URL
