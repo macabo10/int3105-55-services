@@ -47,7 +47,10 @@ def fetch_data_from_api():
     
 def get_data():
     try:
-        tree = ET.parse("exchange_rate.xml")
+        current_dir = os.path.dirname(__file__)
+        data_file_path = os.path.join(current_dir, "exchange_rate.xml")
+
+        tree = ET.parse(data_file_path)
         root = tree.getroot()
         date_time_str = root.find('DateTime').text
         date_time = datetime.strptime(date_time_str, "%m/%d/%Y %I:%M:%S %p")
