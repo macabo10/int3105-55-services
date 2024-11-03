@@ -1,0 +1,20 @@
+# Chọn image cơ sở
+FROM python:3.9
+
+# Thiết lập thư mục làm việc
+WORKDIR /app
+
+# Sao chép tệp yêu cầu vào container
+COPY requirements.txt .
+
+# Cài đặt các phụ thuộc
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Sao chép mã nguồn vào container
+COPY . .
+
+# Mở cổng cho ứng dụng (thay đổi theo cổng mà ứng dụng của bạn sử dụng)
+EXPOSE 3006
+
+# Lệnh chạy ứng dụng (thay đổi theo lệnh khởi động của bạn)
+CMD ["python", "app.py"]
