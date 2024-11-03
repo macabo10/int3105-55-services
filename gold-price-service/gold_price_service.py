@@ -5,7 +5,6 @@ import os
 
 # API URL
 url = "http://giavang.doji.vn/api/giavang/?api_key=258fbd2a72ce8481089d88c678e9fe4f"
-xml_file_path = "./gold_price.xml"
 
 def fetch_from_api():
     try:
@@ -13,13 +12,16 @@ def fetch_from_api():
         response.raise_for_status()
         data = response.text.lstrip('\ufeff')
         lines = data.splitlines()
-        data = "\n".join(lines[2:])
+        data = "\n".join(lines[1:])
 
         try:
+            print("Parsing XML data")
+            print(data)
             root = ET.fromstring(data)
-            # Ensure the directory exists
-            os.makedirs(os.path.dirname(xml_file_path), exist_ok=True)
-            with open(xml_file_path, "wb") as f:
+            print(root)
+            current_dir = os.path.dirname(__file__)
+            data_file_path = os.path.join(current_dir, 'gold_price.xml')
+            with open(data_file_path, "wb") as f:
                 f.write(ET.tostring(root))
             return root
         except ET.ParseError as e:
@@ -32,11 +34,14 @@ def fetch_from_api():
 
 def get_data_from_file():
     try:
-        tree = ET.parse(xml_file_path)
+        current_dir = os.path.dirname(__file__)
+        data_file_path = os.path.join(current_dir, 'gold_price.xml')
+        tree = ET.parse(data_file_path)
+        
         root = tree.getroot()
         igp = root.find("IGPList")
         date_time_str = igp.find('DateTime').text
-        date_time = datetime.strptime(date_time_str, "%d/%m/%Y %I:%M:%S %p")
+        date_time = datetime.strptime(date_time_str, "%H:%M %d/%m/%Y")
 
         current_time = datetime.now()
         if current_time - date_time > timedelta(hours=1):

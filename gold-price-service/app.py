@@ -11,9 +11,18 @@ cors = CORS(app)
 # handles the incoming POST requests
 def handle():
     print(request.json)
-    gold_type = request.json["gold_type"]
-
+    # Check if the request is JSON
+    if request.content_type != 'application/json':
+        return make_response(jsonify({"error": "Unsupported Media Type"}), 415)
+    
+    data = request.get_json()
+    # Check if the request body is empty or missing the gold_type field
+    if not data or 'gold_type' not in data:
+        return make_response(jsonify({"error": "Bad Request"}), 400)
+    
+    gold_type = data["gold_type"]
     print(f"Getting buy price for {gold_type}")
+
     result = get_gold_price(gold_type)
 
     if result is not None:
