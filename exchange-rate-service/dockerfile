@@ -1,5 +1,5 @@
 # Chọn image cơ sở
-FROM python:3.9
+FROM python:3.9-slim
 
 # Thiết lập thư mục làm việc
 WORKDIR /app
