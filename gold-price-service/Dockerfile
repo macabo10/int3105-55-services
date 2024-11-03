@@ -11,7 +11,7 @@ COPY . /gold-price-service
 RUN pip install -r requirements.txt
 
 # Expose the port the app runs on (Flask default is 5000)
-EXPOSE 5000
+EXPOSE 3000
 
 # Run the Python script when the container launches
-CMD ["python", "gold_price_service.py"]
+CMD ["python", "app.py"]
