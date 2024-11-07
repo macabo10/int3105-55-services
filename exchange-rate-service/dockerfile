@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3006
 
 # Lệnh chạy ứng dụng (thay đổi theo lệnh khởi động của bạn)
-CMD ["python", "app.py"]
+CMD ["python", "-u", "app.py"]
