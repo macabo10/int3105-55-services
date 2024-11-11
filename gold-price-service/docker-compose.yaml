@@ -1,0 +1,7 @@
+services:
+    app:
+        build:
+            context: ./app
+        container_name: gold-price-service
+        ports:
+            - 3007:3007
