@@ -8,12 +8,11 @@ import time
 app = Flask(__name__)
 cors = CORS(app)
 
-gold_endpoint_status = {}
-
+exchange_endpoint_status = {}
 
 def check_service(url):
     try:
-        payload = {"gold_type": "vang24k"}
+        payload = {"currency": "USD"}
         response = requests.post(url, json=payload, timeout=2)
         return response.status_code == 200
     except requests.RequestException:
@@ -22,7 +21,7 @@ def check_service(url):
 
 def endpoint_health_check():
     endpoint_status = {
-        "gold_price_api_online": check_service("http://localhost:3007/"),
+        "exchange_rate_api_online": check_service("http://localhost:3006/"),
     }
     # Return a regular dictionary instead of using jsonify
     return {"services": endpoint_status}
@@ -75,12 +74,12 @@ def get_container_stats(container_name):
 @app.route('/', methods=['GET'])
 @cross_origin()
 def health_check():
-    container_name = "6ce1f0823bb63177ecdf027f0bcab236949fb76113087c57030d1c5a03ea1e06"
-    global gold_endpoint_status
+    container_name = "c2b11bddf33704507e1b009226d76102fcdfd40345ec7388d064791f36c334ef"
+    global exchange_endpoint_status
     report = endpoint_health_check()
     if report:
-        gold_endpoint_status = report
-        print("Updated gold_endpoint_status:", gold_endpoint_status)
+        exchange_endpoint_status = report
+        print("Updated gold_endpoint_status:", exchange_endpoint_status)
     else:
         print("Warning: Received empty or invalid report")
 
@@ -92,12 +91,12 @@ def health_check():
     except Exception as e:
         print(f"Failed to get container status")
 
-    gold_service_status = {
-        "gold_endpoint_status": gold_endpoint_status,
+    exchange_service_status = {
+        "gold_endpoint_status": exchange_endpoint_status,
         "container_info": container_info
     }
-    return jsonify(gold_service_status)
+    return jsonify(exchange_service_status)
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=4007)
+    app.run(host='0.0.0.0', port=4006)
