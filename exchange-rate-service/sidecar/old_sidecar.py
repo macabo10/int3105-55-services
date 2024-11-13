@@ -1,5 +1,6 @@
 import json
 from flask import Flask, jsonify
+import mysql.connector
 from flask_cors import CORS, cross_origin
 import requests
 import subprocess
@@ -8,6 +9,24 @@ import threading
 
 app = Flask(__name__)
 cors = CORS(app)
+
+
+# Config MySQL
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'Bach2003'
+app.config['MYSQL_DB'] = 'monitoring_service'
+
+
+def get_db():
+    connection = mysql.connector.connect(
+        host=app.config['MYSQL_HOST'],
+        user=app.config['MYSQL_USER'],
+        password=app.config['MYSQL_PASSWORD'],
+        database=app.config['MYSQL_DB']
+    )
+    return connection
+
 
 monitoringInfos = [
     {
@@ -107,19 +126,77 @@ def health_check():
         except Exception as e:
             print(f"Failed to get container status: {e}")
 
-        exchange_service_status.append({
-            "container_name": container_name,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
-            "info": {
-                "live_stats": container_info.get("live_stats", {}),
-                "container": {
-                    "status": "up" if container_info.get("status") == "running" else "down",
-                },
-                "endpoint": {
-                    "status": "up" if exchange_endpoint_status["services"]["online"] else "down",
-                }
-            }
-        })
+        # exchange_service_status.append({
+        #     "container_name": container_name,
+        #     "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
+        #     "info": {
+        #         "live_stats": container_info.get("live_stats", {}),
+        #         "container": {
+        #             "status": "up" if container_info.get("status") == "running" else "down",
+        #         },
+        #         "endpoint": {
+        #             "status": "up" if exchange_endpoint_status["services"]["online"] else "down",
+        #         }
+        #     }
+        # })
+
+        # Assign the values to the variables
+        service_id = 1 if container_name == "exchange_rate_service_no1" else 2
+        container_name = container_name
+        status = container_info.get("status")
+        endpoint_status = "up" if exchange_endpoint_status["services"]["online"] else "down"
+        cpu_percentage = container_info.get(
+            "live_stats").get("CPUPerc").replace("%", "")
+        memory_percentage = container_info.get(
+            "live_stats").get("MemPerc").replace("%", "")
+        memory_usage = container_info.get("live_stats").get("MemUsage")
+        network_io = container_info.get("live_stats").get("NetIO")
+        request_count = 0
+        timestamp = time.strftime(
+            "%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600))
+
+        # Store the data in the MySQL database
+        db = get_db()
+        cursor = db.cursor()
+
+        # Câu lệnh SQL với dấu %s thay vì dấu ?
+        insert_query = """
+        INSERT INTO Containers (
+            service_id,
+            container_name,
+            status,
+            endpoint_status,
+            cpu_percentage,
+            memory_percentage,
+            memory_usage,
+            network_io,
+            request_count,
+            timestamp
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        # Thực thi câu lệnh SQL với các tham số
+        try:
+            cursor.execute(insert_query, (
+                service_id,
+                container_name,
+                status,
+                endpoint_status,
+                cpu_percentage,
+                memory_percentage,
+                memory_usage,
+                network_io,
+                request_count,
+                timestamp
+            ))
+            db.commit()  # Commit the transaction
+        except Exception as e:
+            db.rollback()  # Rollback in case of error
+            print(f"An error occurred: {e}")
+        finally:
+            cursor.close()  # Ensure the cursor is closed
+
 
     for each_container in monitoringInfos:
         thread = threading.Thread(
@@ -134,4 +211,4 @@ def health_check():
 
 
 if __name__ == "__main__":
-    app.run(port=4006, debug=True)
+    app.run(host='0.0.0.0', port=4006, debug=True)
