@@ -7,6 +7,10 @@
 cd exchange-rate-service
 docker-compose up --build
 ```
+
+- Container 1 runs on port 3304
+
+- Container 2 runs on port 3305
 ### 2. Run sidecar
 ```sh
 python .\sidecar\sidecar.py
