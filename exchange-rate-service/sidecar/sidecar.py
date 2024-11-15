@@ -49,6 +49,9 @@ def get_container_stats(container_name):
 
         # Extract necessary info from `docker inspect`
         status = inspect_data["State"]["Status"]
+        created_time = inspect_data["Created"]
+        created_time = created_time.split(".")[0]
+
 
     except subprocess.CalledProcessError as e:
         print(f"Failed to inspect container: {e}")
@@ -72,6 +75,7 @@ def get_container_stats(container_name):
     # Combine `inspect` and `stats` data into one JSON-like dictionary
     container_info = {
         "status": status,
+        "created": created_time,
         "live_stats": {
             "CPUPerc": stats_data.get("CPUPerc", "").replace("%", ""),
             "MemPerc": stats_data.get("MemPerc", "").replace("%", ""),
@@ -110,6 +114,7 @@ def health_check():
         exchange_service_status.append({
             "container_name": container_name,
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
+            "created": container_info.get("created"),
             "info": {
                 "live_stats": container_info.get("live_stats", {}),
                 "container": {

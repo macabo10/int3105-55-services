@@ -33,6 +33,5 @@ def handle():
     return make_response(jsonify({"error": "Gold type not found"}), 404)
 
 if __name__ == "__main__":
-    # Run the Flask app, listening on port 3000 by default
     # Thread(target=health_check_thread, daemon=True).start()
     app.run(host='0.0.0.0', port=3007)
