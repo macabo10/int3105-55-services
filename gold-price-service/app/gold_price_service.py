@@ -6,6 +6,7 @@ import os
 # API URL
 url = "http://giavang.doji.vn/api/giavang/?api_key=258fbd2a72ce8481089d88c678e9fe4f"
 
+
 def fetch_from_api():
     try:
         response = requests.get(url)
@@ -32,12 +33,13 @@ def fetch_from_api():
         print(f"Error fetching data: {e}")
         return None
 
+
 def get_data_from_file():
     try:
         current_dir = os.path.dirname(__file__)
         data_file_path = os.path.join(current_dir, 'gold_price.xml')
         tree = ET.parse(data_file_path)
-        
+
         root = tree.getroot()
         igp = root.find("IGPList")
         date_time_str = igp.find('DateTime').text
@@ -53,6 +55,7 @@ def get_data_from_file():
     except ET.ParseError as e:
         print(f"Failed to parse XML: {e}")
         return None
+
 
 def get_gold_price(gold_type):
     data = get_data_from_file()
