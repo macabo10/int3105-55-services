@@ -2,3 +2,4 @@ Flask
 requests
 flask_cors
 datetime
+flask-limiter

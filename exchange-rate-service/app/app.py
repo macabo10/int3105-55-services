@@ -1,15 +1,22 @@
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS, cross_origin
 from exchange_rate_service import get_exchange_rate
-import time
 from threading import Thread
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 cors = CORS(app)
 
+limiter = Limiter(
+    get_remote_address,  # Use the client's IP address to enforce rate limits
+    app=app,
+    default_limits=["200 per minute"]  # Global limit
+)
 
 @app.route('/', methods=['POST'])
 @cross_origin()
+@limiter.limit("200 per minute")
 def handle():
     # Check if the request is JSON
     if request.content_type != 'application/json':
