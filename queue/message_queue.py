@@ -4,7 +4,7 @@ import json
 
 app = Flask(__name__)
 
-def send_to_exchange_rate_service(request, queue_name='exchange_rate_queue'):
+def send_to_service(request, queue_name):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
@@ -23,7 +23,7 @@ def send_to_exchange_rate_service(request, queue_name='exchange_rate_queue'):
 @app.route('/get_exchange_rate', methods=['POST'])
 def get_exchange_rate():
     data = request.json
-    send_to_exchange_rate_service(data)
+    send_to_service(data, 'exchange_rate_queue')
     return jsonify({"status": "Request received and sent to Exchange Rate Service"}), 202
 
 @app.route('/receive_exchange_rate', methods=['POST'])
@@ -34,13 +34,15 @@ def receive_exchange_rate():
 
 @app.route('/get_gold_price', methods=['POST'])
 def get_gold_price():
+    print("Getting gold price")
     data = request.json
-    send_to_exchange_rate_service(data, 'gold_price_queue')
-    return jsonify({"status": "Request received and sent to Gold Price Service"}), 202
+    send_to_service(data, 'gold_price_queue')
+    # return jsonify({"status": "Request received and sent to Gold Price Service"}), 202
 
 @app.route('/receive_gold_price', methods=['POST'])
 def receive_gold_price():
     # This would be called by Gold Price Service
+    print(f"Receiving gold price: {request.json}")
     gold_price = request.json
     return jsonify({"status": "Gold Price received", "data": gold_price}), 200
 
