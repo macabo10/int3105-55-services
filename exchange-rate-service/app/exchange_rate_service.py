@@ -1,26 +1,27 @@
-import requests;
+import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 import os
 
 API = "https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10"
 
-def get_exchange_rate(currency):    
+
+def get_exchange_rate(currency):
     data = get_data()
 
     if data is None:
         return None
-    
+
     for child in data.findall('Exrate'):
         if child.attrib["CurrencyCode"] == currency:
             return child.attrib["Transfer"]
-        
-    return None;
+
+    return None
 
 
 def fetch_data_from_api():
     print("Fetching data from API")
-    response = requests.get(API);
+    response = requests.get(API)
     if response.status_code == 200:
         # Remove BOM if present
         data = response.text.lstrip('\ufeff')
@@ -31,7 +32,7 @@ def fetch_data_from_api():
 
         try:
             root = ET.fromstring(data)
-            
+
             current_dir = os.path.dirname(__file__)
             data_file_path = os.path.join(current_dir, "exchange_rate.xml")
 
@@ -44,7 +45,8 @@ def fetch_data_from_api():
     else:
         print(f"Failed to fetch data. Status code: {response.status_code}")
         return None
-    
+
+
 def get_data():
     try:
         current_dir = os.path.dirname(__file__)
@@ -65,4 +67,3 @@ def get_data():
     except ET.ParseError as e:
         print(f"Failed to parse XML: {e}")
         return None
-    

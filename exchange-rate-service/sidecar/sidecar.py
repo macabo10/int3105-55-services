@@ -5,6 +5,7 @@ import requests
 import subprocess
 import time
 import threading
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -49,6 +50,10 @@ def get_container_stats(container_name):
 
         # Extract necessary info from `docker inspect`
         status = inspect_data["State"]["Status"]
+        created_time = inspect_data["Created"].split(".")[0]
+        created_time = datetime.strptime(created_time, "%Y-%m-%dT%H:%M:%S")
+        created_time = (created_time + timedelta(hours=7)
+                        ).strftime("%Y-%m-%dT%H:%M:%S")
 
     except subprocess.CalledProcessError as e:
         print(f"Failed to inspect container: {e}")
@@ -72,9 +77,10 @@ def get_container_stats(container_name):
     # Combine `inspect` and `stats` data into one JSON-like dictionary
     container_info = {
         "status": status,
+        "created": created_time,
         "live_stats": {
-            "CPUPerc": stats_data.get("CPUPerc", "").replace("%", ""),
-            "MemPerc": stats_data.get("MemPerc", "").replace("%", ""),
+            "CPUPerc": stats_data.get("CPUPerc", ""),
+            "MemPerc": stats_data.get("MemPerc", ""),
             "MemUsage": stats_data.get("MemUsage"),
             "NetIO": stats_data.get("NetIO")
         }
@@ -109,7 +115,8 @@ def health_check():
 
         exchange_service_status.append({
             "container_name": container_name,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
+            "checked_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
+            "created_at": container_info.get("created"),
             "info": {
                 "live_stats": container_info.get("live_stats", {}),
                 "container": {

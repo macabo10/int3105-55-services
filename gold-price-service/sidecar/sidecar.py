@@ -1,28 +1,39 @@
 import json
-from flask import Flask, jsonify, make_response, request
+from flask import Flask, jsonify
 from flask_cors import CORS, cross_origin
 import requests
 import subprocess
 import time
+import threading
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 cors = CORS(app)
 
-gold_endpoint_status = {}
+monitoringInfos = [
+    {
+        "container_name": "gold_price_service_no1",
+        "API": "http://localhost:3008/"
+    },
+    {
+        "container_name": "gold_price_service_no2",
+        "API": "http://localhost:3009/"
+    }
+]
 
 
 def check_service(url):
     try:
         payload = {"gold_type": "vang24k"}
-        response = requests.post(url, json=payload, timeout=2)
+        response = requests.post(url, json=payload, timeout=1)
         return response.status_code == 200
     except requests.RequestException:
         return False
 
 
-def endpoint_health_check():
+def endpoint_health_check(api):
     endpoint_status = {
-        "gold_price_api_online": check_service("http://localhost:3007/"),
+        "online": check_service(api),
     }
     # Return a regular dictionary instead of using jsonify
     return {"services": endpoint_status}
@@ -39,6 +50,10 @@ def get_container_stats(container_name):
 
         # Extract necessary info from `docker inspect`
         status = inspect_data["State"]["Status"]
+        created_time = inspect_data["Created"].split(".")[0]
+        created_time = datetime.strptime(created_time, "%Y-%m-%dT%H:%M:%S")
+        created_time = (created_time + timedelta(hours=7)
+                        ).strftime("%Y-%m-%dT%H:%M:%S")
 
     except subprocess.CalledProcessError as e:
         print(f"Failed to inspect container: {e}")
@@ -62,9 +77,10 @@ def get_container_stats(container_name):
     # Combine `inspect` and `stats` data into one JSON-like dictionary
     container_info = {
         "status": status,
+        "created": created_time,
         "live_stats": {
-            "CPUPerc": stats_data.get("CPUPerc"),
-            "MemPerc": stats_data.get("MemPerc"),
+            "CPUPerc": stats_data.get("CPUPerc", ""),
+            "MemPerc": stats_data.get("MemPerc", ""),
             "MemUsage": stats_data.get("MemUsage"),
             "NetIO": stats_data.get("NetIO")
         }
@@ -75,29 +91,54 @@ def get_container_stats(container_name):
 @app.route('/', methods=['GET'])
 @cross_origin()
 def health_check():
-    container_name = "6ce1f0823bb63177ecdf027f0bcab236949fb76113087c57030d1c5a03ea1e06"
-    global gold_endpoint_status
-    report = endpoint_health_check()
-    if report:
-        gold_endpoint_status = report
-        print("Updated gold_endpoint_status:", gold_endpoint_status)
-    else:
-        print("Warning: Received empty or invalid report")
+    gold_service_status = []
+    threads = []
+
+    def process_container(each_container):
+        container_name = each_container["container_name"]
+        api = each_container["API"]
+        global gold_endpoint_status
+        report = endpoint_health_check(api)
+        if report:
+            gold_endpoint_status = report
+            print("Updated gold_endpoint_status:", gold_endpoint_status)
+        else:
+            print("Warning: Received empty or invalid report")
 
         # Initialize with default value
-    container_info = {"error": "Failed to retrieve container stats"}
+        container_info = {"error": "Failed to retrieve container stats"}
 
-    try:
-        container_info = get_container_stats(container_name)
-    except Exception as e:
-        print(f"Failed to get container status")
+        try:
+            container_info = get_container_stats(container_name)
+        except Exception as e:
+            print(f"Failed to get container status: {e}")
 
-    gold_service_status = {
-        "gold_endpoint_status": gold_endpoint_status,
-        "container_info": container_info
-    }
+        gold_service_status.append({
+            "container_name": container_name,
+            "checked_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
+            "created_at": container_info.get("created"),
+            "info": {
+                "live_stats": container_info.get("live_stats", {}),
+                "container": {
+                    "status": "up" if container_info.get("status") == "running" else "down",
+                },
+                "endpoint": {
+                    "status": "up" if gold_endpoint_status["services"]["online"] else "down",
+                }
+            }
+        })
+
+    for each_container in monitoringInfos:
+        thread = threading.Thread(
+            target=process_container, args=(each_container,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
     return jsonify(gold_service_status)
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=4007)
+    app.run(port=4007, debug=True)
