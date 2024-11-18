@@ -7,11 +7,10 @@ import json
 
 app = Flask(__name__)
 
-def callback(ch, method, properties, body):
+def on_request(ch, method, properties, body):
     request = body.decode('utf-8')
     
     data = json.loads(request)
-    # data = request.get_json()
     print(data)
     # Check if the request body is empty or missing the gold_type field
     if not data or 'gold_type' not in data:
@@ -24,21 +23,30 @@ def callback(ch, method, properties, body):
 
     if result is not None:
         print(f"Price for {gold_type} is: {result}")
-        return requests.post('http://localhost:5001/receive_gold_price', json={"gold_price": result})
+        response = {
+            "gold_type": gold_type,
+            "gold_price": result
+        }
+        ch.basic_publish(
+            exchange='',
+            routing_key=properties.reply_to,
+            properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+            body=json.dumps(response)
+        )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
     
 
-def start_consuming():
+def start_rpc_server():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    channel.queue_declare(queue='gold_price_queue')
+    channel.queue_declare(queue='gold_price_queue', durable=True)
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue='gold_price_queue', on_message_callback=on_request)
 
-    channel.basic_consume(queue='gold_price_queue', on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
+    print(" [x] Awaiting RPC requests")
     channel.start_consuming()
 
-
 if __name__ == "__main__":
-    start_consuming()
-
+    start_rpc_server()
