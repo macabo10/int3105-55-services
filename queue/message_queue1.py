@@ -2,26 +2,22 @@ from flask import Flask, request, jsonify
 import pika
 import json
 import uuid
-import threading
 
 app = Flask(__name__)
 
 class RpcClient:
     def __init__(self):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        self.channel = self.connection.channel()
-
-        result = self.channel.queue_declare(queue='', exclusive=True)
-        self.callback_queue = result.method.queue
-
-        self.channel.basic_consume(
-            queue=self.callback_queue,
-            on_message_callback=self.on_response,
-            auto_ack=True
-        )
-
+        self.callback_queue = None
         self.response = None
         self.corr_id = None
+
+    def connect(self):
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
+        result = channel.queue_declare(queue='', exclusive=True)
+        self.callback_queue = result.method.queue
+        channel.basic_consume(queue=self.callback_queue, on_message_callback=self.on_response, auto_ack=True)
+        return connection, channel
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
@@ -30,8 +26,9 @@ class RpcClient:
     def call(self, request_data, queue_name):
         self.response = None
         self.corr_id = str(uuid.uuid4())
+        connection, channel = self.connect()
         try:
-            self.channel.basic_publish(
+            channel.basic_publish(
                 exchange='',
                 routing_key=queue_name,
                 properties=pika.BasicProperties(
@@ -42,25 +39,14 @@ class RpcClient:
                 body=json.dumps(request_data)
             )
             while self.response is None:
-                self.connection.process_data_events()
+                connection.process_data_events()
             return self.response
-        except pika.exceptions.ChannelWrongStateError as e:
-            print(f"Channel wrong state error: {e}, reconnecting...")
-            self.reconnect()
-            return self.call(request_data, queue_name)
-        except pika.exceptions.AMQPConnectionError as e:
+        except (pika.exceptions.ChannelWrongStateError, pika.exceptions.AMQPConnectionError, pika.exceptions.StreamLostError) as e:
             print(f"Connection error: {e}, reconnecting...")
-            self.reconnect()
+            connection.close()
             return self.call(request_data, queue_name)
-
-    def reconnect(self):
-        print("Reconnect...")
-        self.connection.close()
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        self.channel = self.connection.channel()
-        result = self.channel.queue_declare(queue='', exclusive=True)
-        self.callback_queue = result.method.queue
-        self.channel.basic_consume(queue=self.callback_queue, on_message_callback=self.on_response, auto_ack=True)
+        finally:
+            connection.close()
 
 rpc_client = RpcClient()
 
