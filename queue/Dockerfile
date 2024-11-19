@@ -13,7 +13,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port the app runs on
-EXPOSE 4007
+EXPOSE 4000
 
-# Run the Python script when the container launches
-CMD ["python", "-u" , "app.py"]
+# Run the gunicorn server when the container launches
+CMD ["gunicorn", "--bind", "0.0.0.0:4000", "--workers", "10", "--threads", "5", "message_queue:app"]

@@ -17,12 +17,12 @@ def on_request(ch, method, properties, body):
         return make_response(jsonify({"error": "Bad Request"}), 400)
     
     currency = data["currency"]
-    print(f"Getting buy price for {currency}")
+    print(f"Getting exchange rate for {currency}")
 
     result = get_exchange_rate(currency)
 
     if result is not None:
-        print(f"Price for {currency} is: {result}")
+        print(f"Exchange rate for {currency} is: {result}")
         response = {
             "currency": currency,
             "exchange_rate": result

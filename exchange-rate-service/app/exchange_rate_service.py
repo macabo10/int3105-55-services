@@ -66,4 +66,4 @@ def get_data():
         return fetch_data_from_api()
     except ET.ParseError as e:
         print(f"Failed to parse XML: {e}")
-        return None
+        return fetch_data_from_api()
