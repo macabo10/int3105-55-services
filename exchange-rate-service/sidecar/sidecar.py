@@ -25,7 +25,9 @@ monitoringInfos = [
 def check_service(url):
     try:
         payload = {"currency": "USD"}
-        response = requests.post(url, json=payload, timeout=1)
+        print(f"Response from {url}")
+        response = requests.post(url, json=payload, timeout=5)
+        print(f"Response status code: {response.status_code}")
         return response.status_code == 200
     except requests.RequestException:
         return False
@@ -97,7 +99,6 @@ def health_check():
     def process_container(each_container):
         container_name = each_container["container_name"]
         api = each_container["API"]
-        global exchange_endpoint_status
         report = endpoint_health_check(api)
         if report:
             exchange_endpoint_status = report
@@ -129,16 +130,15 @@ def health_check():
         })
 
     for each_container in monitoringInfos:
-        thread = threading.Thread(
-            target=process_container, args=(each_container,))
-        threads.append(thread)
-        thread.start()
-
-    for thread in threads:
-        thread.join()
+        process_container(each_container)
 
     return jsonify(exchange_service_status)
 
+
+@app.route('/ditmemay', methods=['GET'])
+@cross_origin()
+def ditmemay():
+    return jsonify(endpoint_health_check("http://localhost:3004/"))
 
 if __name__ == "__main__":
     app.run(port=4006, debug=True)
