@@ -2,8 +2,17 @@ from flask import Flask, request, jsonify
 import pika
 import json
 import uuid
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_limiter.errors import RateLimitExceeded
 
 app = Flask(__name__)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["100/second"],
+    storage_uri="memory://",
+)
 
 class RpcClient:
     def __init__(self):
@@ -50,17 +59,23 @@ class RpcClient:
 
 rpc_client = RpcClient()
 
+@app.errorhandler(RateLimitExceeded)
+def handle_rate_limit_exceeded(e):
+    return jsonify(error="rate limit exceeded", message=str(e.description)), 429
+
 @app.route('/get_exchange_rate', methods=['POST'])
+@limiter.limit("1000/second")
 def get_exchange_rate():
     data = request.json
     response = rpc_client.call(data, 'exchange_rate_queue')
     return jsonify(response), 200
 
 @app.route('/get_gold_price', methods=['POST'])
+@limiter.limit("1000/second")
 def get_gold_price():
     data = request.json
     response = rpc_client.call(data, 'gold_price_queue')
     return jsonify(response), 200
 
 if __name__ == "__main__":
-    app.run(port=5002, threaded=True)
+    app.run(port=4000, threaded=True)
