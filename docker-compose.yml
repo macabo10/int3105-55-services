@@ -1,0 +1,50 @@
+networks:
+  rabbitmq_network:
+    external: true
+
+services:
+    app:
+        build:
+            context: ./gold-price-service/app
+        container_name: gold_price_service_no1
+        networks:
+            - rabbitmq_network
+        ports:
+            - 3008:3007
+
+    app_2:
+        build:
+            context: ./gold-price-service/app
+        container_name: gold_price_service_no2
+        networks:
+            - rabbitmq_network
+        ports:
+            - 3009:3007
+
+    app_3:
+        build:
+            context: ./exchange-rate-service/app
+        container_name: exchange_rate_service_no1
+        networks:
+            - rabbitmq_network
+        ports:
+            - 3004:3006
+
+    app_4:
+        build:
+            context: ./exchange-rate-service/app
+        container_name: exchange_rate_service_no2
+        networks:
+            - rabbitmq_network
+        ports:
+            - 3005:3006
+
+    app_5:
+        build:
+            context: ./queue/app
+        container_name: message_queue_service
+        networks:
+            - rabbitmq_network
+        ports:
+            - 4000:4000
+
