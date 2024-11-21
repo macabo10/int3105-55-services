@@ -1,0 +1,13 @@
+networks:
+  rabbitmq_network:
+    external: true
+
+services:
+    app:
+        build:
+            context: ./app
+        container_name: message_queue_service
+        networks:
+            - rabbitmq_network
+        ports:
+            - 4000:4000

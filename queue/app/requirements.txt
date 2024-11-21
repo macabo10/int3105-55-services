@@ -1,0 +1,6 @@
+Flask
+flask_cors
+pika
+uuid
+gunicorn
+flask_limiter

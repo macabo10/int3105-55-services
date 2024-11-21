@@ -21,7 +21,7 @@ class RpcClient:
         self.corr_id = None
 
     def connect(self):
-        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters('172.30.0.2'))
         channel = connection.channel()
         result = channel.queue_declare(queue='', exclusive=True)
         self.callback_queue = result.method.queue

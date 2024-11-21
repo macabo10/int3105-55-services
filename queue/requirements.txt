@@ -1,5 +1,0 @@
-Flask
-flask_cors
-pika
-json
-uuid
