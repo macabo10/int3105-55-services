@@ -1,6 +1,4 @@
 import pika
-import time
-import requests
 from exchange_rate_service import get_exchange_rate
 from flask import Flask, jsonify, make_response, request
 import json
@@ -38,7 +36,7 @@ def on_request(ch, method, properties, body):
     
 
 def start_rpc_server():
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('172.30.0.2'))
     channel = connection.channel()
 
     channel.queue_declare(queue='exchange_rate_queue', durable=True)

@@ -38,7 +38,7 @@ def on_request(ch, method, properties, body):
     
 
 def start_rpc_server():
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('172.30.0.2'))
     channel = connection.channel()
 
     channel.queue_declare(queue='gold_price_queue', durable=True)

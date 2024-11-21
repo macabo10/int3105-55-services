@@ -1,8 +1,14 @@
+networks:
+  rabbitmq_network:
+    external: true
+
 services:
     app:
         build:
             context: ./app
         container_name: exchange_rate_service_no1
+        networks:
+            - rabbitmq_network
         ports:
             - 3004:3006
 
@@ -10,5 +16,7 @@ services:
         build:
             context: ./app
         container_name: exchange_rate_service_no2
+        networks:
+            - rabbitmq_network
         ports:
             - 3005:3006
