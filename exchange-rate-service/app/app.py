@@ -1,38 +1,50 @@
-from flask import Flask, jsonify, make_response, request
-from flask_cors import CORS, cross_origin
+import pika
 from exchange_rate_service import get_exchange_rate
-import time
-from threading import Thread
+from flask import Flask, jsonify, make_response, request
+import json
 
 app = Flask(__name__)
-cors = CORS(app)
 
-
-@app.route('/', methods=['POST'])
-@cross_origin()
-def handle():
-    # Check if the request is JSON
-    if request.content_type != 'application/json':
-        return make_response(jsonify({"error": "Unsupported Media Type"}), 415)
-
-    data = request.get_json()
-    # Check if the request body is empty or missing the currency field
+def on_request(ch, method, properties, body):
+    request = body.decode('utf-8')
+    
+    data = json.loads(request)
+    print(data)
+    # Check if the request body is empty or missing the gold_type field
     if not data or 'currency' not in data:
         return make_response(jsonify({"error": "Bad Request"}), 400)
-
+    
     currency = data["currency"]
-
-    # Capitalize the currency code
-    currency = currency.upper()
-
     print(f"Getting exchange rate for {currency}")
+
     result = get_exchange_rate(currency)
 
     if result is not None:
-        print(f"Exchange rate: {result}")
-        return make_response(jsonify({"exchange_rate": result}), 200)
+        print(f"Exchange rate for {currency} is: {result}")
+        response = {
+            "currency": currency,
+            "exchange_rate": result
+        }
+        ch.basic_publish(
+            exchange='',
+            routing_key=properties.reply_to,
+            properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+            body=json.dumps(response)
+        )
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+    
 
-    return make_response(jsonify({"error": "Currency not found"}), 404)
+def start_rpc_server():
+    connection = pika.BlockingConnection(pika.ConnectionParameters('172.30.0.2'))
+    channel = connection.channel()
+
+    channel.queue_declare(queue='exchange_rate_queue', durable=True)
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue='exchange_rate_queue', on_message_callback=on_request)
+
+    print(" [x] Awaiting RPC requests")
+    channel.start_consuming()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3006)
+    start_rpc_server()

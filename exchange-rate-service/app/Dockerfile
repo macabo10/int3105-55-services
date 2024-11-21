@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Mở cổng cho ứng dụng (thay đổi theo cổng mà ứng dụng của bạn sử dụng)
-EXPOSE 3006
+EXPOSE 4006
 
 # Lệnh chạy ứng dụng (thay đổi theo lệnh khởi động của bạn)
 CMD ["python", "-u", "app.py"]

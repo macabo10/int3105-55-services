@@ -17,9 +17,7 @@ def fetch_from_api():
 
         try:
             print("Parsing XML data")
-            print(data)
             root = ET.fromstring(data)
-            print(root)
             current_dir = os.path.dirname(__file__)
             data_file_path = os.path.join(current_dir, 'gold_price.xml')
             with open(data_file_path, "wb") as f:
@@ -51,10 +49,11 @@ def get_data_from_file():
         else:
             return root
     except FileNotFoundError:
+        print("File not found, fetch data from api")
         return fetch_from_api()
     except ET.ParseError as e:
         print(f"Failed to parse XML: {e}")
-        return None
+        return fetch_from_api()
 
 
 def get_gold_price(gold_type):
