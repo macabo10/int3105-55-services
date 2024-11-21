@@ -5,14 +5,18 @@ import uuid
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_limiter.errors import RateLimitExceeded
+import threading
 
 app = Flask(__name__)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["100/second"],
+    default_limits=["1000/second"],
     storage_uri="memory://",
 )
+
+# Thread-local storage for RpcClient instances
+thread_local = threading.local()
 
 class RpcClient:
     def __init__(self):
@@ -32,7 +36,7 @@ class RpcClient:
         if self.corr_id == props.correlation_id:
             self.response = json.loads(body)
 
-    def call(self, request_data, queue_name):
+    def call(self, request_data, queue_name, priority = 0):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         connection, channel = self.connect()
@@ -43,6 +47,7 @@ class RpcClient:
                 properties=pika.BasicProperties(
                     reply_to=self.callback_queue,
                     correlation_id=self.corr_id,
+                    priority=priority,
                     delivery_mode=2  # Make message persistent
                 ),
                 body=json.dumps(request_data)
@@ -57,7 +62,10 @@ class RpcClient:
         finally:
             connection.close()
 
-rpc_client = RpcClient()
+def get_rpc_client():
+    if not hasattr(thread_local, 'rpc_client'):
+        thread_local.rpc_client = RpcClient()
+    return thread_local.rpc_client
 
 @app.errorhandler(RateLimitExceeded)
 def handle_rate_limit_exceeded(e):
@@ -67,14 +75,24 @@ def handle_rate_limit_exceeded(e):
 @limiter.limit("1000/second")
 def get_exchange_rate():
     data = request.json
-    response = rpc_client.call(data, 'exchange_rate_queue')
+    if 'priority' in data:
+        priority = data['priority']
+    else:
+        priority = 0
+    rpc_client = get_rpc_client()
+    response = rpc_client.call(data, 'exchange_rate_queue', priority=priority)
     return jsonify(response), 200
 
 @app.route('/get_gold_price', methods=['POST'])
 @limiter.limit("1000/second")
 def get_gold_price():
     data = request.json
-    response = rpc_client.call(data, 'gold_price_queue')
+    if 'priority' in data:
+        priority = data['priority']
+    else:
+        priority = 0
+    rpc_client = get_rpc_client()
+    response = rpc_client.call(data, 'gold_price_queue', priority=priority)
     return jsonify(response), 200
 
 if __name__ == "__main__":
