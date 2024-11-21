@@ -19,10 +19,10 @@ python .\sidecar\sidecar.py
 ## RabbitMQ
 ### Create network
 ```sh
-docker network create --subnet=172.30.0.0/16 service_network
+docker network create --subnet=172.30.0.0/16 rabbitmq_network
 ```
 
 ### Run rabbitMQ container
 ```sh
-docker run -it --rm --name rabbitmq --network service_network --ip 172.30.0.2 -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management
+docker run -it --rm --name rabbitmq --network rabbitmq_network --ip 172.30.0.2 -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management
 ```
