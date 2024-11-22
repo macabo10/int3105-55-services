@@ -135,10 +135,5 @@ def health_check():
     return jsonify(exchange_service_status)
 
 
-@app.route('/ditmemay', methods=['GET'])
-@cross_origin()
-def ditmemay():
-    return jsonify(endpoint_health_check("http://localhost:3004/"))
-
 if __name__ == "__main__":
     app.run(port=4006, debug=True)
