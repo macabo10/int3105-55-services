@@ -4,7 +4,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 
 def send_request(data):
-    url = 'http://localhost:5002/get_gold_price'
+    url = 'http://localhost:4000/get_gold_price'
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url, headers=headers, data=json.dumps(data))
     return response.json()
@@ -14,8 +14,8 @@ def main():
         "gold_type": "vang24k"
     }
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = [executor.submit(send_request, request_data) for _ in range(1)]
+    with ThreadPoolExecutor(max_workers=100) as executor:
+        futures = [executor.submit(send_request, request_data) for _ in range(5000)]
         for future in futures:
             try:
                 response = future.result()
