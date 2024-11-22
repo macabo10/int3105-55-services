@@ -6,6 +6,10 @@ import subprocess
 import time
 import threading
 from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -20,6 +24,31 @@ monitoringInfos = [
         "API": "http://localhost:3009/"
     }
 ]
+
+
+def send_email_notification(container_name):
+    sender_email = "pixelend2003@yahoo.com.vn" 
+    receiver_email = "daavenspicks@gmail.com" 
+    app_password = "pdajertdwxleoqfu"
+
+    # Nội dung mail
+    message = MIMEMultipart("alternative")
+    message["Subject"] = f"Container {container_name} Status Alert"
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    text = f"The container {container_name} is down."
+    part = MIMEText(text, "plain")
+    message.attach(part)
+
+    try:
+        # Đoạn này kết nối các thứ r gửi mail đi
+        with smtplib.SMTP_SSL("smtp.mail.yahoo.com", 465) as server:
+            server.set_debuglevel(1)
+            server.login(sender_email, app_password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+        print(f"Email sent to {receiver_email} about container {container_name}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 
 def check_service(url):
@@ -139,6 +168,31 @@ def health_check():
 
     return jsonify(gold_service_status)
 
+def check_container_status(container):
+    container_name = container["container_name"]
+    inspect_cmd = f"docker inspect {container_name}"
+    try:
+        inspect_result = subprocess.run(inspect_cmd, shell=True, capture_output=True, text=True, check=True)
+        inspect_data = json.loads(inspect_result.stdout)[0]
+        status = inspect_data["State"]["Status"]
+        if status == "running":
+            return True
+        else: 
+            return False
+    except requests.exceptions.RequestException:
+        return False
+
+
+def monitor_containers():
+    while True:
+        for container in monitoringInfos:
+            status = check_container_status(container)
+            if status == False:
+                send_email_notification(container["container_name"])
+        time.sleep(60)
 
 if __name__ == "__main__":
+    monitoring_thread = threading.Thread(target=monitor_containers)
+    monitoring_thread.daemon = True
+    monitoring_thread.start()
     app.run(port=4007, debug=True)
