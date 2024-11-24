@@ -4,3 +4,4 @@ pika
 uuid
 gunicorn
 flask_limiter
+redis
