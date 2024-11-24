@@ -11,7 +11,7 @@ app = Flask(__name__)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["1000/second"],
+    default_limits=["100/second"],
     storage_uri="memory://",
 )
 
@@ -61,6 +61,12 @@ class RpcClient:
             return self.call(request_data, queue_name)
         finally:
             connection.close()
+    
+    def clear_queue(self, queue_name):
+        connection, channel = self.connect()
+        channel.queue_purge(queue=queue_name)
+        connection.close()
+        print(f"Queue '{queue_name}' has been cleared.")
 
 def get_rpc_client():
     if not hasattr(thread_local, 'rpc_client'):
@@ -72,7 +78,7 @@ def handle_rate_limit_exceeded(e):
     return jsonify(error="rate limit exceeded", message=str(e.description)), 429
 
 @app.route('/get_exchange_rate', methods=['POST'])
-@limiter.limit("1000/second")
+@limiter.limit("100/second")
 def get_exchange_rate():
     data = request.json
     if 'priority' in data:
@@ -84,7 +90,7 @@ def get_exchange_rate():
     return jsonify(response), 200
 
 @app.route('/get_gold_price', methods=['POST'])
-@limiter.limit("1000/second")
+@limiter.limit("10/second")
 def get_gold_price():
     data = request.json
     if 'priority' in data:
@@ -94,6 +100,14 @@ def get_gold_price():
     rpc_client = get_rpc_client()
     response = rpc_client.call(data, 'gold_price_queue', priority=priority)
     return jsonify(response), 200
+
+@app.route('/clear_queue', methods=['POST'])
+def clear_queue():
+    data = request.json
+    queue_name = data.get('queue_name', 'gold_price_queue')  # Default to 'exchange_rate_queue'
+    rpc_client = get_rpc_client()
+    rpc_client.clear_queue(queue_name)
+    return jsonify({"status": "Queue cleared"}), 200
 
 if __name__ == "__main__":
     app.run(port=4000, threaded=True)
