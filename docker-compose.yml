@@ -1,16 +1,71 @@
 networks:
-  rabbitmq_network:
-    external: true
-
+    rabbitmq_network:
+        external: true
+    redis_network_service_1:
+        driver: bridge
+    redis_network_service_2:
+        driver: bridge
+    redis_network_service_3:
+        driver: bridge
+    redis_network_service_4:
+        driver: bridge
+    redis_network_service_5:
+        driver: bridge
 services:
-    app:
+    redis_service_1:
+        image: redis:latest
+        container_name: redis_for_gold_price_service_no1
+        networks:
+            - redis_network_service_1
+        ports:
+            - "6380:6379"
+
+    redis_service_2:
+        image: redis:latest
+        container_name: redis_for_gold_price_service_no2
+        networks:
+            - redis_network_service_2
+        ports:
+            - "6381:6379"
+
+    redis_service_3:
+        image: redis:latest
+        container_name: redis_for_exchange_rate_service_no1
+        networks:
+            - redis_network_service_3
+        ports:
+            - "6382:6379"
+
+    redis_service_4:
+        image: redis:latest
+        container_name: redis_for_exchange_rate_service_no2
+        networks:
+            - redis_network_service_4
+        ports:
+            - "6383:6379"
+
+    redis_service_5:
+        image: redis:latest
+        container_name: redis_for_message_queue_service
+        networks:
+            - redis_network_service_5
+        ports:
+            - "6384:6379"
+
+    app_1:
         build:
             context: ./gold-price-service/app
         container_name: gold_price_service_no1
         networks:
             - rabbitmq_network
+            - redis_network_service_1
+        environment:
+            - REDIS_HOST=redis_for_gold_price_service_no1
+            # - REDIS_PORT=6380
         ports:
             - 3008:3007
+        depends_on:
+            - redis_service_1
 
     app_2:
         build:
@@ -18,8 +73,14 @@ services:
         container_name: gold_price_service_no2
         networks:
             - rabbitmq_network
+            - redis_network_service_2
+        environment:
+            - REDIS_HOST=redis_for_gold_price_service_no2
+            # - REDIS_PORT=6381
         ports:
             - 3009:3007
+        depends_on:
+            - redis_service_2
 
     app_3:
         build:
@@ -27,8 +88,14 @@ services:
         container_name: exchange_rate_service_no1
         networks:
             - rabbitmq_network
+            - redis_network_service_3
+        environment:
+            - REDIS_HOST=redis_for_exchange_rate_service_no1
+            # - REDIS_PORT=6382
         ports:
             - 3004:3006
+        depends_on:
+            - redis_service_3
 
     app_4:
         build:
@@ -36,8 +103,14 @@ services:
         container_name: exchange_rate_service_no2
         networks:
             - rabbitmq_network
+            - redis_network_service_4
+        environment:
+            - REDIS_HOST=redis_for_exchange_rate_service_no2
+            # - REDIS_PORT=6383
         ports:
             - 3005:3006
+        depends_on:
+            - redis_service_4
 
     app_5:
         build:
@@ -45,6 +118,11 @@ services:
         container_name: message_queue_service
         networks:
             - rabbitmq_network
+            - redis_network_service_5
+        environment:
+            - REDIS_HOST=redis_for_message_queue_service
+            # - REDIS_PORT=6384
         ports:
             - 4000:4000
-
+        depends_on:
+            - redis_service_5

@@ -15,7 +15,7 @@ def main():
     }
 
     with ThreadPoolExecutor(max_workers=100) as executor:
-        futures = [executor.submit(send_request, request_data) for _ in range(5000)]
+        futures = [executor.submit(send_request, request_data) for _ in range(300)]
         for future in futures:
             try:
                 response = future.result()

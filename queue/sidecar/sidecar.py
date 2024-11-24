@@ -1,3 +1,4 @@
+import redis
 import json
 from flask import Flask, jsonify
 from flask_cors import CORS, cross_origin
@@ -13,7 +14,8 @@ cors = CORS(app)
 monitoringInfos = [
     {
         "container_name": "message_queue_service",
-        "API": "http://localhost:4000/get_gold_price"
+        "API": "http://localhost:4000/get_gold_price",
+        "REDIS_PORT": 6384
     }
 ]
 
@@ -86,6 +88,35 @@ def get_container_stats(container_name):
     return container_info  # Return as JSON-ready dictionary
 
 
+def get_metrics(host, port):
+    def connect_to_redis(host, port):
+        redis_host = host
+        redis_port = port
+        for _ in range(10):  # Retry connecting to Redis up to 10 times
+            try:
+                client = redis.StrictRedis(
+                    host=redis_host, port=redis_port, decode_responses=True)
+                if client.ping():
+                    print("Connected to Redis!")
+                    return client
+            except redis.ConnectionError:
+                print("Redis is not ready yet. Retrying in 5 seconds...")
+                time.sleep(5)
+        raise Exception("Failed to connect to Redis after multiple attempts")
+
+    redis_client = connect_to_redis(host, port)
+    incoming_requests = redis_client.get("incoming_requests") or 0
+    outgoing_responses = redis_client.get("outgoing_responses") or 0
+
+    redis_client.delete("incoming_requests")
+    redis_client.delete("outgoing_responses")
+
+    return json.dumps({
+        "incoming_requests": int(incoming_requests),
+        "outgoing_responses": int(outgoing_responses)
+    })
+
+
 @app.route('/', methods=['GET'])
 @cross_origin()
 def health_check():
@@ -110,6 +141,9 @@ def health_check():
         except Exception as e:
             print(f"Failed to get container status: {e}")
 
+        user_capacity = json.loads(get_metrics(
+            'localhost', each_container["REDIS_PORT"]))
+
         exchange_service_status.append({
             "container_name": container_name,
             "checked_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 7*3600)),
@@ -121,7 +155,8 @@ def health_check():
                 },
                 "endpoint": {
                     "status": "up" if exchange_endpoint_status["services"]["online"] else "down",
-                }
+                },
+                "user_capacity": user_capacity
             }
         })
 
