@@ -15,11 +15,11 @@ monitoringInfos = [
     {
         "container_name": "message_queue_service",
         "for_gold": {
-            "body": {"gold_type": "vang24k"},
+            "body": {"gold_type": "vang24k", "priority": 10},
             "API": "http://localhost:4000/get_gold_price"
         },
         "for_exchange": {
-            "body": {"currency": "USD"},
+            "body": {"currency": "CAD", "priority": 10},
             "API": "http://localhost:4000/get_exchange_rate"
         },
         "REDIS_PORT": 6384
