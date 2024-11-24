@@ -14,29 +14,48 @@ cors = CORS(app)
 monitoringInfos = [
     {
         "container_name": "message_queue_service",
-        "API": "http://localhost:4000/get_gold_price",
+        "for_gold": {
+            "body": {"gold_type": "vang24k"},
+            "API": "http://localhost:4000/get_gold_price"
+        },
+        "for_exchange": {
+            "body": {"currency": "USD"},
+            "API": "http://localhost:4000/get_exchange_rate"
+        },
         "REDIS_PORT": 6384
     }
 ]
 
 
-def check_service(url):
+# def check_service(url):
+#     try:
+#         payload = {"gold_type": "vang24k"}
+#         print(f"Response from {url}")
+#         response = requests.post(url, json=payload, timeout=5)
+#         print(f"Response status code: {response.status_code}")
+#         return response.status_code == 200
+#     except requests.RequestException:
+#         return False
+
+
+# def endpoint_health_check(api):
+#     endpoint_status = {
+#         "online": check_service(api),
+#     }
+#     # Return a regular dictionary instead of using jsonify
+#     return {"services": endpoint_status}
+def endpoint_health_check(api, body):
     try:
-        payload = {"gold_type": "vang24k"}
-        print(f"Response from {url}")
-        response = requests.post(url, json=payload, timeout=5)
-        print(f"Response status code: {response.status_code}")
-        return response.status_code == 200
-    except requests.RequestException:
-        return False
-
-
-def endpoint_health_check(api):
-    endpoint_status = {
-        "online": check_service(api),
-    }
-    # Return a regular dictionary instead of using jsonify
-    return {"services": endpoint_status}
+        response = requests.post(api, json=body, timeout=5)
+        if response.status_code == 200:
+            return "up"
+        else:
+            print(
+                f"Warning: Received status code {response.status_code} for API {api}")
+            return "down"
+    except requests.exceptions.RequestException as e:
+        print(f"Error: Failed to reach API {api}. Exception: {e}")
+        return "down"
 
 
 def get_container_stats(container_name):
@@ -122,16 +141,18 @@ def get_metrics(host, port):
 def health_check():
     exchange_service_status = []
     threads = []
+    endpoint_status = {}
 
     def process_container(each_container):
         container_name = each_container["container_name"]
-        api = each_container["API"]
-        report = endpoint_health_check(api)
-        if report:
-            exchange_endpoint_status = report
-            print("Updated exchange_endpoint_status:", exchange_endpoint_status)
-        else:
-            print("Warning: Received empty or invalid report")
+        endpoint_status[container_name] = {}
+
+        for api_key in ["for_gold", "for_exchange"]:
+            for_service = each_container[api_key]
+            status = endpoint_health_check(
+                for_service["API"], for_service["body"])
+            endpoint_status[container_name][api_key] = status
+            print(f"Updated {api_key} status for {container_name}: {status}")
 
         # Initialize with default value
         container_info = {"error": "Failed to retrieve container stats"}
@@ -154,7 +175,8 @@ def health_check():
                     "status": "up" if container_info.get("status") == "running" else "down",
                 },
                 "endpoint": {
-                    "status": "up" if exchange_endpoint_status["services"]["online"] else "down",
+                    "gold_status": endpoint_status[container_name]["for_gold"],
+                    "exchange_status": endpoint_status[container_name]["for_exchange"]
                 },
                 "user_capacity": user_capacity
             }
