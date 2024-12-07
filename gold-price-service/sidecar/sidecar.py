@@ -14,32 +14,17 @@ cors = CORS(app)
 monitoringInfos = [
     {
         "container_name": "gold_price_service_no1",
-        "API": "http://localhost:3008/",
         "REDIS_PORT": 6380
     },
     {
         "container_name": "gold_price_service_no2",
-        "API": "http://localhost:3009/",
         "REDIS_PORT": 6381
+    },
+    {
+        "container_name": "gold_price_service_no3",
+        "REDIS_PORT": 6388
     }
 ]
-
-
-def check_service(url):
-    try:
-        payload = {"gold_type": "vang24k"}
-        response = requests.post(url, json=payload, timeout=1)
-        return response.status_code == 200
-    except requests.RequestException:
-        return False
-
-
-def endpoint_health_check(api):
-    endpoint_status = {
-        "online": check_service(api),
-    }
-    # Return a regular dictionary instead of using jsonify
-    return {"services": endpoint_status}
 
 
 def get_container_stats(container_name):
@@ -128,14 +113,6 @@ def health_check():
 
     def process_container(each_container):
         container_name = each_container["container_name"]
-        api = each_container["API"]
-        global gold_endpoint_status
-        report = endpoint_health_check(api)
-        if report:
-            gold_endpoint_status = report
-            print("Updated gold_endpoint_status:", gold_endpoint_status)
-        else:
-            print("Warning: Received empty or invalid report")
 
         # Initialize with default value
         container_info = {"error": "Failed to retrieve container stats"}
@@ -156,9 +133,6 @@ def health_check():
                 "live_stats": container_info.get("live_stats", {}),
                 "container": {
                     "status": "up" if container_info.get("status") == "running" else "down",
-                },
-                "endpoint": {
-                    "status": "up" if gold_endpoint_status["services"]["online"] else "down",
                 },
                 "user_capacity": user_capacity
             }

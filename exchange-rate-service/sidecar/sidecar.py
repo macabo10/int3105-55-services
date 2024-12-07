@@ -15,14 +15,16 @@ cors = CORS(app)
 monitoringInfos = [
     {
         "container_name": "exchange_rate_service_no1",
-        "API": "http://localhost:3004/",
         "REDIS_PORT": 6382
     },
     {
         "container_name": "exchange_rate_service_no2",
-        "API": "http://localhost:3005/",
         "REDIS_PORT": 6383
-    }
+    },
+    #  {
+    #     "container_name": "exchange_rate_service_no3",
+    #     "REDIS_PORT": 6385
+    # }
 ]
 
 
@@ -131,13 +133,6 @@ def health_check():
 
     def process_container(each_container):
         container_name = each_container["container_name"]
-        api = each_container["API"]
-        report = endpoint_health_check(api)
-        if report:
-            exchange_endpoint_status = report
-            print("Updated exchange_endpoint_status:", exchange_endpoint_status)
-        else:
-            print("Warning: Received empty or invalid report")
 
         # Initialize with default value
         container_info = {"error": "Failed to retrieve container stats"}
@@ -158,9 +153,6 @@ def health_check():
                 "live_stats": container_info.get("live_stats", {}),
                 "container": {
                     "status": "up" if container_info.get("status") == "running" else "down",
-                },
-                "endpoint": {
-                    "status": "up" if exchange_endpoint_status["services"]["online"] else "down",
                 },
                 "user_capacity": user_capacity
             }

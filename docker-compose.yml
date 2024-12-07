@@ -60,6 +60,9 @@ services:
             - rabbitmq_network
             - redis_network_service_1
         environment:
+            - CONTAINER_NAME=gold_price_service_no1
+            - SIDECAR_URL=http://127.0.0.1:4007
+            - SERVICE_ID=2
             - REDIS_HOST=redis_for_gold_price_service_no1
             # - REDIS_PORT=6380
         ports:
@@ -75,6 +78,9 @@ services:
             - rabbitmq_network
             - redis_network_service_2
         environment:
+            - CONTAINER_NAME=gold_price_service_no2
+            - SIDECAR_URL=http://127.0.0.1:4007
+            - SERVICE_ID=2
             - REDIS_HOST=redis_for_gold_price_service_no2
             # - REDIS_PORT=6381
         ports:
@@ -90,6 +96,9 @@ services:
             - rabbitmq_network
             - redis_network_service_3
         environment:
+            - CONTAINER_NAME=exchange_rate_service_no1
+            - SIDECAR_URL=http://127.0.0.1:4006
+            - SERVICE_ID=1
             - REDIS_HOST=redis_for_exchange_rate_service_no1
             # - REDIS_PORT=6382
         ports:
@@ -105,6 +114,9 @@ services:
             - rabbitmq_network
             - redis_network_service_4
         environment:
+            - CONTAINER_NAME=exchange_rate_service_no2
+            - SIDECAR_URL=http://127.0.0.1:4006
+            - SERVICE_ID=1
             - REDIS_HOST=redis_for_exchange_rate_service_no2
             # - REDIS_PORT=6383
         ports:
