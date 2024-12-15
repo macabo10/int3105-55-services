@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Get container name from environment variable
 CONTAINER_NAME=$CONTAINER_NAME
